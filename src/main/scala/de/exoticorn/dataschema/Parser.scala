@@ -8,7 +8,7 @@ object Parser extends RegexParsers {
   
   def ident = """[a-zA-Z_]\w*""".r
 
-  def typeRef = namespacePath ~ ident                      ^^ { case path ~ name => Type(name, path) }
+  def typeRef = namespacePath ~ ident                      ^^ { case path ~ name => TypeRef(name, path) }
 
   def namespacePath = rep(ident <~ "::")
   
@@ -25,10 +25,24 @@ object Parser extends RegexParsers {
   def annotation = opt("<<" ~> rep(annotationField) <~ ">>") ^^
                                                               { _.getOrElse(Seq.empty) }
   
-  def structField = typeRef ~ ident ~ annotation <~ ";"    ^^ { case t ~ n ~ a => StructField(n, t, a) }
+  def structField = (
+    typeRef ~ ident ~ ("[" ~> opt(intLiteral) <~ "]") ~ annotation
+                                                           ^^ { case t ~ n ~ d ~ a =>
+                                                                  val at = ArrayTypeRef(t.name, t.path, d.getOrElse(0))
+                                                                  StructField(n, at, a)
+                                                              }
+  | typeRef ~ ident ~ annotation                           ^^ { case t ~ n ~ a => StructField(n, t, a) }
+  )
   
-  def struct = "struct" ~> ident ~ opt(":" ~> typeRef) ~ annotation ~ ("{" ~> rep(structField) <~ "}" <~ ";")    ^^
+  def struct = "struct" ~> ident ~ opt(":" ~> typeRef) ~ annotation ~ ("{" ~> rep(structField <~ ";") <~ "}")    ^^
                                                               { case name ~ parent ~ annotation ~ fields => Struct(name, parent, fields, annotation) }
+
+  def typedef = "typedef" ~> typeRef ~ ident ~ annotation  ^^ { case t ~ n ~ a => Typedef(n, t, a) }
+
+  def namespace = "namespace" ~> ident ~ ("{" ~> rep(typeDecl) <~ "}")    ^^
+                                                              { case name ~ types => Namespace(name, types, Seq.empty) }
+  
+  def typeDecl = (struct | typedef) <~ ";"
 
   // format: ON
 }

@@ -37,8 +37,8 @@ class ParserSuite extends FunSuite {
   }
 
   test("type reference") {
-    parse(Parser.typeRef, "abc", Type("abc", Seq.empty))
-    parse(Parser.typeRef, "foo::bar::abc", Type("abc", Seq("foo", "bar")))
+    parse(Parser.typeRef, "abc", TypeRef("abc", Seq.empty))
+    parse(Parser.typeRef, "foo::bar::abc", TypeRef("abc", Seq("foo", "bar")))
   }
 
   test("namespace path") {
@@ -72,14 +72,27 @@ class ParserSuite extends FunSuite {
   }
 
   test("struct field") {
-    parse(Parser.structField, "foo bar;", StructField("bar", Type("foo", Seq.empty), Seq.empty))
-    parse(Parser.structField, "foo bar << float abc = -2.2 >>;",
-      StructField("bar", Type("foo", Seq.empty), Seq(AnnotationField("abc", Some("float"), Some(-2.2f)))))
+    parse(Parser.structField, "foo bar", StructField("bar", TypeRef("foo", Seq.empty), Seq.empty))
+    parse(Parser.structField, "foo bar << float abc = -2.2 >>",
+      StructField("bar", TypeRef("foo", Seq.empty), Seq(AnnotationField("abc", Some("float"), Some(-2.2f)))))
+    parse(Parser.structField, "foo bar[]", StructField("bar", ArrayTypeRef("foo", Seq.empty, 0), Seq.empty))
   }
 
   test("struct") {
-    parse(Parser.struct, "struct foo { foo bar; };", Struct("foo", None, Seq(StructField("bar", Type("foo", Seq.empty), Seq.empty)), Seq.empty))
-    parse(Parser.struct, "struct foo << foo = 1 >> {};", Struct("foo", None, Seq.empty, Seq(AnnotationField("foo", None, Some(1)))))
-    parse(Parser.struct, "struct foo : bar << foo = 1 >> {};", Struct("foo", Some(Type("bar", Seq.empty)), Seq.empty, Seq(AnnotationField("foo", None, Some(1)))))
+    parse(Parser.struct, "struct foo { foo bar; }", Struct("foo", None, Seq(StructField("bar", TypeRef("foo", Seq.empty), Seq.empty)), Seq.empty))
+    parse(Parser.struct, "struct foo << foo = 1 >> {}", Struct("foo", None, Seq.empty, Seq(AnnotationField("foo", None, Some(1)))))
+    parse(Parser.struct, "struct foo : bar << foo = 1 >> {}", Struct("foo", Some(TypeRef("bar", Seq.empty)), Seq.empty, Seq(AnnotationField("foo", None, Some(1)))))
+  }
+
+  test("typedef") {
+    parse(Parser.typedef, "typedef foo bar", Typedef("bar", TypeRef("foo", Seq.empty), Seq.empty))
+    parse(Parser.typedef, "typedef foo bar << foo = 1>>", Typedef("bar", TypeRef("foo", Seq.empty), Seq(AnnotationField("foo", None, Some(1)))))
+  }
+
+  test("namespace") {
+    parse(Parser.namespace, "namespace foo {}", Namespace("foo", Seq.empty, Seq.empty))
+    parse(Parser.namespace, "namespace foo { struct bar{}; }", Namespace("foo", Seq(Struct("bar", None, Seq.empty, Seq.empty)), Seq.empty))
+    parse(Parser.namespace, "namespace foo { typedef bar baz; }", Namespace("foo", Seq(Typedef("baz", TypeRef("bar", Seq.empty), Seq.empty)), Seq.empty))
+    //parse(Parser.namespace, "namespace foo { namespace bar {} }", Namespace("foo", Seq.empty, Seq(Namespace("bar", Seq.empty, Seq.empty))))
   }
 }
