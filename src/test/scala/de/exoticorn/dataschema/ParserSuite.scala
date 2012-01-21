@@ -1,6 +1,7 @@
 package de.exoticorn.dataschema
 
 import org.scalatest.{ FunSuite, TestFailedException }
+import de.exoticorn.dataschema.ast._
 
 class ParserSuite extends FunSuite {
   def fixCallstack(f: => Unit) {
@@ -33,5 +34,52 @@ class ParserSuite extends FunSuite {
     parse(Parser.ident, "ab4f_a", "ab4f_a")
     parseFail(Parser.ident, "-fd")
     parseFail(Parser.ident, "12abc")
+  }
+
+  test("type reference") {
+    parse(Parser.typeRef, "abc", Type("abc", Seq.empty))
+    parse(Parser.typeRef, "foo::bar::abc", Type("abc", Seq("foo", "bar")))
+  }
+
+  test("namespace path") {
+    parse(Parser.namespacePath, "foo::", Seq("foo"))
+    parse(Parser.namespacePath, "foo::bar::", Seq("foo", "bar"))
+    parseFail(Parser.namespacePath, "foo::bar")
+  }
+
+  test("annotationType") {
+    parse(Parser.annotationType, "string", "string")
+    parse(Parser.annotationType, "int", "int")
+    parse(Parser.annotationType, "float", "float")
+  }
+
+  test("annotation field") {
+    parse(Parser.annotationField, "string foo", AnnotationField("foo", Some("string"), None))
+    parse(Parser.annotationField, "string foo = \"bar\"", AnnotationField("foo", Some("string"), Some("bar")))
+    parse(Parser.annotationField, "foo = 42.1", AnnotationField("foo", None, Some(42.1f)))
+  }
+
+  test("literal") {
+    parse(Parser.literal, "\"foo\"", "foo")
+    parse(Parser.literal, "1", 1)
+    parse(Parser.literal, "-32", -32)
+    parse(Parser.literal, "1.2", 1.2f)
+    parse(Parser.literal, "-2.4", -2.4f)
+  }
+
+  test("annotation") {
+    parse(Parser.annotation, "<< foo = 1 >>", Seq(AnnotationField("foo", None, Some(1))))
+  }
+
+  test("struct field") {
+    parse(Parser.structField, "foo bar;", StructField("bar", Type("foo", Seq.empty), Seq.empty))
+    parse(Parser.structField, "foo bar << float abc = -2.2 >>;",
+      StructField("bar", Type("foo", Seq.empty), Seq(AnnotationField("abc", Some("float"), Some(-2.2f)))))
+  }
+
+  test("struct") {
+    parse(Parser.struct, "struct foo { foo bar; };", Struct("foo", None, Seq(StructField("bar", Type("foo", Seq.empty), Seq.empty)), Seq.empty))
+    parse(Parser.struct, "struct foo << foo = 1 >> {};", Struct("foo", None, Seq.empty, Seq(AnnotationField("foo", None, Some(1)))))
+    parse(Parser.struct, "struct foo : bar << foo = 1 >> {};", Struct("foo", Some(Type("bar", Seq.empty)), Seq.empty, Seq(AnnotationField("foo", None, Some(1)))))
   }
 }
