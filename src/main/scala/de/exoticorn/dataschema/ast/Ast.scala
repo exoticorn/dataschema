@@ -2,7 +2,7 @@ package de.exoticorn.dataschema.ast
 
 sealed abstract class Element extends util.parsing.input.Positional
 
-abstract class TypeRefBase extends Element
+sealed abstract class TypeRefBase extends Element
 case class TypeRef(name: String, path: Seq[String]) extends TypeRefBase
 case class ArrayTypeRef(name: String, path: Seq[String], dimension: Int) extends TypeRefBase
 
@@ -14,5 +14,3 @@ case class Struct(name: String, parent: Option[TypeRef], fields: Seq[StructField
 case class Typedef(name: String, baseType: TypeRef, annotations: Seq[AnnotationField]) extends TypeDecl
 
 case class Namespace(name: String, types: Seq[TypeDecl], children: Seq[Namespace]) extends Element
-
-case class Dataschema(types: Seq[TypeDecl], children: Seq[Namespace]) extends Element

@@ -50,7 +50,7 @@ object Parser extends RegexParsers {
   
   def typeDecl = (struct | typedef) <~ ";"
 
-  def dataschema = namespaceMembers                        ^^ { case (types, children) => Dataschema(types, children) }
+  def dataschema = namespaceMembers                        ^^ { case (types, children) => Namespace("$root", types, children) }
 
   // format: ON
 }

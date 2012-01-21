@@ -1,19 +1,10 @@
 package de.exoticorn.dataschema
 
-import org.scalatest.{ FunSuite, TestFailedException }
+import org.scalatest.FunSuite
 import de.exoticorn.dataschema.ast._
+import de.exoticorn.dataschema.testhelper._
 
-class ParserSuite extends FunSuite {
-  def fixCallstack(f: => Unit) {
-    try {
-      f
-    } catch {
-      case e: TestFailedException =>
-        e.setStackTrace(e.getStackTrace().drop(3))
-        throw e
-    }
-  }
-
+class ParserSuite extends FunSuite with FixCallstack {
   def parse[A](parser: Parser.Parser[A], input: String, output: A) {
     val result = Parser.parseAll(parser, input)
     fixCallstack {
@@ -97,6 +88,6 @@ class ParserSuite extends FunSuite {
   }
 
   test("dataschema") {
-    parse(Parser.dataschema, "namespace foo {}", Dataschema(Seq.empty, Seq(Namespace("foo", Seq.empty, Seq.empty))))
+    parse(Parser.dataschema, "namespace foo {}", Namespace("$root", Seq.empty, Seq(Namespace("foo", Seq.empty, Seq.empty))))
   }
 }
