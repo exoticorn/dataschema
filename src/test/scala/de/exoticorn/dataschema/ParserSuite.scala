@@ -93,6 +93,10 @@ class ParserSuite extends FunSuite {
     parse(Parser.namespace, "namespace foo {}", Namespace("foo", Seq.empty, Seq.empty))
     parse(Parser.namespace, "namespace foo { struct bar{}; }", Namespace("foo", Seq(Struct("bar", None, Seq.empty, Seq.empty)), Seq.empty))
     parse(Parser.namespace, "namespace foo { typedef bar baz; }", Namespace("foo", Seq(Typedef("baz", TypeRef("bar", Seq.empty), Seq.empty)), Seq.empty))
-    //parse(Parser.namespace, "namespace foo { namespace bar {} }", Namespace("foo", Seq.empty, Seq(Namespace("bar", Seq.empty, Seq.empty))))
+    parse(Parser.namespace, "namespace foo { namespace bar {} }", Namespace("foo", Seq.empty, Seq(Namespace("bar", Seq.empty, Seq.empty))))
+  }
+
+  test("dataschema") {
+    parse(Parser.dataschema, "namespace foo {}", Dataschema(Seq.empty, Seq(Namespace("foo", Seq.empty, Seq.empty))))
   }
 }

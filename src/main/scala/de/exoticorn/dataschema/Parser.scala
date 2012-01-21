@@ -39,10 +39,18 @@ object Parser extends RegexParsers {
 
   def typedef = "typedef" ~> typeRef ~ ident ~ annotation  ^^ { case t ~ n ~ a => Typedef(n, t, a) }
 
-  def namespace = "namespace" ~> ident ~ ("{" ~> rep(typeDecl) <~ "}")    ^^
-                                                              { case name ~ types => Namespace(name, types, Seq.empty) }
+  def namespace = "namespace" ~> ident ~ ("{" ~> namespaceMembers <~ "}")    ^^
+                                                              { case name ~ ((types, children)) => Namespace(name, types, children) }
+  
+  def namespaceMembers: Parser[(Seq[TypeDecl], Seq[Namespace])] = (
+    typeDecl ~ namespaceMembers                            ^^ { case t ~ ((types, children)) => (t +: types, children) }
+  | namespace ~ namespaceMembers                           ^^ { case n ~ ((types, children)) => (types, n +: children) }
+  | success((Seq.empty, Seq.empty))
+  )
   
   def typeDecl = (struct | typedef) <~ ";"
+
+  def dataschema = namespaceMembers                        ^^ { case (types, children) => Dataschema(types, children) }
 
   // format: ON
 }

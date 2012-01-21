@@ -14,3 +14,5 @@ case class Struct(name: String, parent: Option[TypeRef], fields: Seq[StructField
 case class Typedef(name: String, baseType: TypeRef, annotations: Seq[AnnotationField]) extends TypeDecl
 
 case class Namespace(name: String, types: Seq[TypeDecl], children: Seq[Namespace]) extends Element
+
+case class Dataschema(types: Seq[TypeDecl], children: Seq[Namespace]) extends Element
