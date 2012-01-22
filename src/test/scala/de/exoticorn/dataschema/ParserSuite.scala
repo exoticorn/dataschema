@@ -45,9 +45,10 @@ class ParserSuite extends FunSuite with FixCallstack {
   }
 
   test("annotation field") {
-    parse(Parser.annotationField, "string foo", AnnotationField("foo", Some("string"), None))
-    parse(Parser.annotationField, "string foo = \"bar\"", AnnotationField("foo", Some("string"), Some("bar")))
-    parse(Parser.annotationField, "foo = 42.1", AnnotationField("foo", None, Some(42.1f)))
+    parse(Parser.annotationField, "string foo = \"bar\"", AnnotationField("foo", Some("string"), "bar"))
+    parse(Parser.annotationField, "foo = 42.1", AnnotationField("foo", None, 42.1f))
+    parseFail(Parser.annotationField, "foo")
+    parseFail(Parser.annotationField, "string foo")
   }
 
   test("literal") {
@@ -59,25 +60,25 @@ class ParserSuite extends FunSuite with FixCallstack {
   }
 
   test("annotation") {
-    parse(Parser.annotation, "<< foo = 1 >>", Seq(AnnotationField("foo", None, Some(1))))
+    parse(Parser.annotation, "<< foo = 1 >>", Seq(AnnotationField("foo", None, 1)))
   }
 
   test("struct field") {
     parse(Parser.structField, "foo bar", StructField("bar", TypeRef("foo", Seq.empty), Seq.empty))
     parse(Parser.structField, "foo bar << float abc = -2.2 >>",
-      StructField("bar", TypeRef("foo", Seq.empty), Seq(AnnotationField("abc", Some("float"), Some(-2.2f)))))
+      StructField("bar", TypeRef("foo", Seq.empty), Seq(AnnotationField("abc", Some("float"), -2.2f))))
     parse(Parser.structField, "foo bar[]", StructField("bar", ArrayTypeRef("foo", Seq.empty, 0), Seq.empty))
   }
 
   test("struct") {
     parse(Parser.struct, "struct foo { foo bar; }", Struct("foo", None, Seq(StructField("bar", TypeRef("foo", Seq.empty), Seq.empty)), Seq.empty))
-    parse(Parser.struct, "struct foo << foo = 1 >> {}", Struct("foo", None, Seq.empty, Seq(AnnotationField("foo", None, Some(1)))))
-    parse(Parser.struct, "struct foo : bar << foo = 1 >> {}", Struct("foo", Some(TypeRef("bar", Seq.empty)), Seq.empty, Seq(AnnotationField("foo", None, Some(1)))))
+    parse(Parser.struct, "struct foo << foo = 1 >> {}", Struct("foo", None, Seq.empty, Seq(AnnotationField("foo", None, 1))))
+    parse(Parser.struct, "struct foo : bar << foo = 1 >> {}", Struct("foo", Some(TypeRef("bar", Seq.empty)), Seq.empty, Seq(AnnotationField("foo", None, 1))))
   }
 
   test("typedef") {
     parse(Parser.typedef, "typedef foo bar", Typedef("bar", TypeRef("foo", Seq.empty), Seq.empty))
-    parse(Parser.typedef, "typedef foo bar << foo = 1>>", Typedef("bar", TypeRef("foo", Seq.empty), Seq(AnnotationField("foo", None, Some(1)))))
+    parse(Parser.typedef, "typedef foo bar << foo = 1>>", Typedef("bar", TypeRef("foo", Seq.empty), Seq(AnnotationField("foo", None, 1))))
   }
 
   test("namespace") {
@@ -89,5 +90,6 @@ class ParserSuite extends FunSuite with FixCallstack {
 
   test("dataschema") {
     parse(Parser.dataschema, "namespace foo {}", Namespace("$root", Seq.empty, Seq(Namespace("foo", Seq.empty, Seq.empty))))
+    parse(Parser.dataschema, "struct foo {};", Namespace("$root", Seq(Struct("foo", None, Seq.empty, Seq.empty)), Seq.empty))
   }
 }

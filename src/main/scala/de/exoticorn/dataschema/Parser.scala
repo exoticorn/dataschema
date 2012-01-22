@@ -14,7 +14,7 @@ object Parser extends RegexParsers {
   
   def annotationType = "string" | "int" | "float"
   
-  def annotationField = opt(annotationType) ~ ident ~ opt("=" ~> literal)    ^^
+  def annotationField = opt(annotationType) ~ ident ~ ("=" ~> literal)    ^^
                                                               { case t ~ n ~ v => AnnotationField(n, t, v) }
   
   def literal = stringLiteral | floatLiteral | intLiteral  

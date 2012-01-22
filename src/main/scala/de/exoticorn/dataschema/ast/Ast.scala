@@ -6,7 +6,7 @@ sealed abstract class TypeRefBase extends Element
 case class TypeRef(name: String, path: Seq[String]) extends TypeRefBase
 case class ArrayTypeRef(name: String, path: Seq[String], dimension: Int) extends TypeRefBase
 
-case class AnnotationField(name: String, typeName: Option[String], value: Option[Any]) extends Element
+case class AnnotationField(name: String, typeName: Option[String], value: Any) extends Element
 case class StructField(name: String, fieldType: TypeRefBase, annotations: Seq[AnnotationField]) extends Element
 
 abstract class TypeDecl extends Element
